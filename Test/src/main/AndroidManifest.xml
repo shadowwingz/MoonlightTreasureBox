@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.test">
+    xmlns:tools="http://schemas.android.com/tools">
 
     <application
         android:name=".TestApplication"
@@ -30,6 +30,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- Fix BlockCanary DisplayActivity missing exported attribute -->
+        <activity
+            android:name="com.github.moduth.blockcanary.ui.DisplayActivity"
+            android:exported="false"
+            tools:node="replace" />
     </application>
 
 </manifest>

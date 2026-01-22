@@ -44,8 +44,9 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         XXPermissions.with(this)
-                .permission(Permission.WRITE_EXTERNAL_STORAGE)
-                .permission(Permission.READ_EXTERNAL_STORAGE)
+                .permission(Permission.READ_MEDIA_IMAGES)
+                .permission(Permission.READ_MEDIA_VIDEO)
+                .permission(Permission.READ_MEDIA_AUDIO)
                 .request(new OnPermissionCallback() {
                     @Override
                     public void onGranted(List<String> permissions, boolean all) {
