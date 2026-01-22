@@ -35,7 +35,7 @@ import java.util.List;
  * Copyright (c) 2021, 唐小陆 All rights reserved.
  * author：txl
  * date：2021/10/23
- * description：
+ * description：文件采样处理类，实现了IAnrSamplerListener接口，用于将ANR采样数据持久化到文件中
  */
 public class FileSample implements IAnrSamplerListener {
 
@@ -46,29 +46,60 @@ public class FileSample implements IAnrSamplerListener {
     private AnrInfo anrInfo = new AnrInfo();
 
 
+    /**
+     * 私有构造函数，初始化文件缓存
+     */
     private FileSample() {
         fileCache.init(BlockMonitorFace.getBlockMonitorFace().getApplicationContext(),"block_anr",10,"1.0.0");
     }
 
+    /**
+     * 消息队列采样回调
+     * @param baseTime 基准时间
+     * @param msgId 消息ID
+     * @param msg 消息内容
+     */
     @Override
     public void onMessageQueueSample(long baseTime, String msgId, String msg) {
         anrInfo.messageQueueSample.append( msg );
     }
 
+    /**
+     * CPU采样回调
+     * @param baseTime 基准时间
+     * @param msgId 消息ID
+     * @param msg 消息内容
+     */
     @Override
     public void onCpuSample(long baseTime, String msgId, String msg) {
 
     }
 
+    /**
+     * 内存采样回调
+     * @param baseTime 基准时间
+     * @param msgId 消息ID
+     * @param msg 消息内容
+     */
     @Override
     public void onMemorySample(long baseTime, String msgId, String msg) {
     }
 
+    /**
+     * 主线程堆栈采样回调
+     * @param baseTime 基准时间
+     * @param msgId 消息ID
+     * @param msg 堆栈信息
+     */
     @Override
     public void onMainThreadStackSample(long baseTime, String msgId, String msg) {
         anrInfo.mainThreadStack = msg;
     }
 
+    /**
+     * 采样ANR消息完成的回调
+     * 将采集的ANR信息缓存到文件
+     */
     @Override
     public void onSampleAnrMsg() {
         synchronized (this){
@@ -89,6 +120,13 @@ public class FileSample implements IAnrSamplerListener {
         }
     }
 
+    /**
+     * 调度采样回调
+     * @param start 是否开始
+     * @param baseTime 基准时间
+     * @param msgId 消息ID
+     * @param dealt 耗时
+     */
     @Override
     public void onScheduledSample(boolean start,long baseTime, String msgId, long dealt) {
         synchronized (this){
@@ -96,6 +134,12 @@ public class FileSample implements IAnrSamplerListener {
         }
     }
 
+    /**
+     * 消息采样回调
+     * @param baseTime 基准时间
+     * @param msgId 消息ID
+     * @param msg 消息信息
+     */
     @Override
     public void onMsgSample(long baseTime, String msgId, MessageInfo msg) {
         synchronized (this){
@@ -111,6 +155,11 @@ public class FileSample implements IAnrSamplerListener {
         }
     }
 
+    /**
+     * 掉帧采样回调
+     * @param msgId 消息ID
+     * @param msg 消息信息
+     */
     @Override
     public void onJankSample(String msgId, MessageInfo msg) {
         StringBuilder builder = new StringBuilder();
@@ -122,6 +171,10 @@ public class FileSample implements IAnrSamplerListener {
         Log.d( TAG,new String(builder) );
     }
 
+    /**
+     * 消息队列分发ANR完成的回调
+     * 将ANR信息缓存到文件，并重置当前ANR信息
+     */
     @Override
     public void messageQueueDispatchAnrFinish() {
         AnrInfo temp = anrInfo;
@@ -140,6 +193,11 @@ public class FileSample implements IAnrSamplerListener {
 
     }
 
+    /**
+     * 文件缓存内部类
+     * 用于管理ANR信息的文件缓存，包括缓存、恢复、清理等操作
+     * @param <T> 可序列化的数据类型
+     */
     public static class FileCache<T extends Serializable> {
         private static final String TAG = FileCache.class.getSimpleName();
         private final String LAST_VERSION = "last_version";
@@ -147,14 +205,23 @@ public class FileSample implements IAnrSamplerListener {
 
         /**
          * 指定目录下最多能够存储多少个文件
-         * */
+         */
         private int maxSize = 20;
         private int currentSize;
         private static final SimpleDateFormat sFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss:SSS");
 
+        /**
+         * 私有构造函数
+         */
         private FileCache() {
         }
 
+        /**
+         * 获取磁盘缓存目录
+         * @param context 上下文
+         * @param uniqueName 唯一名称
+         * @return 缓存目录文件
+         */
         private File getDiskCacheDir(Context context, String uniqueName){
             boolean externalStorageAvailable = Environment.getExternalStorageState().equals( Environment.MEDIA_MOUNTED );
             final String cachePath;
@@ -167,6 +234,13 @@ public class FileSample implements IAnrSamplerListener {
         }
 
 
+        /**
+         * 初始化文件缓存
+         * @param context 上下文
+         * @param rootDir 根目录名称
+         * @param maxSize 最大文件数量
+         * @param appVersion 应用版本
+         */
         public void init(Context context, String rootDir, int maxSize, String appVersion){
             if(maxSize > 2){
                 this.maxSize = maxSize;
@@ -188,6 +262,11 @@ public class FileSample implements IAnrSamplerListener {
             long m = getUsableSpace(diskCacheDir);
         }
 
+        /**
+         * 缓存数据到文件
+         * @param path 文件路径
+         * @param serializable 可序列化的数据
+         */
         public synchronized void cacheData(String path, T serializable){
 //如果文件不存在就创建文件
             File file=new File(diskCacheDir.getPath()+ File.separator+path);
@@ -209,6 +288,10 @@ public class FileSample implements IAnrSamplerListener {
             }
         }
 
+        /**
+         * 移除最旧的文件
+         * 当文件数量超过maxSize时，按照文件名排序，移除最早的文件
+         */
         private synchronized void removeLastFile(){
             File[] files = diskCacheDir.listFiles();
             Arrays.sort(files, new Comparator<File>() {
@@ -222,6 +305,10 @@ public class FileSample implements IAnrSamplerListener {
             FileUtils.deleteFile(files[0]);
         }
 
+        /**
+         * 从文件恢复数据
+         * @return 恢复的数据列表
+         */
         public  synchronized List<T>  restoreData(){
             List<T> result = new ArrayList<>();
             File[] files = diskCacheDir.listFiles();
@@ -252,6 +339,11 @@ public class FileSample implements IAnrSamplerListener {
         }
 
 
+        /**
+         * 获取可用空间
+         * @param path 路径
+         * @return 可用空间大小
+         */
         private long getUsableSpace(File path){
             if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.GINGERBREAD){
                 return path.getUsableSpace();

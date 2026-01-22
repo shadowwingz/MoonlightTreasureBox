@@ -11,6 +11,10 @@ import com.txl.blockmoonlighttreasurebox.info.ScheduledInfo;
 
 import java.util.List;
 
+/**
+ * 调度分析Adapter
+ * 用于显示主线程调度能力的采样信息
+ */
 public class AnalyzeSchedulingAdapter extends RecyclerView.Adapter<AnalyzeSchedulingViewHolder> {
     List<ScheduledInfo> scheduledInfos;
 

@@ -18,7 +18,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * Copyright (c) 2021, 唐小陆 All rights reserved.
  * author：txl
  * date：2021/10/23
- * description：专门负责采样
+ * description：采样管理器实现类，专门负责ANR时的采样工作
  */
 public class SampleManagerImpl implements ISamplerManager {
     private static final String TAG = SampleManagerImpl.class.getSimpleName();
@@ -30,6 +30,10 @@ public class SampleManagerImpl implements ISamplerManager {
     private long baseTime;
     private String msgId;
     private final SamplerListenerChain samplerListenerChain  = new SamplerListenerChain();
+
+    /**
+     * 私有构造函数，初始化各种采样器
+     */
     private SampleManagerImpl() {
         AbsSampler cpuSample = new CpuSample();
         cpuSample.setSampleListener( new AbsSampler.SampleListener() {

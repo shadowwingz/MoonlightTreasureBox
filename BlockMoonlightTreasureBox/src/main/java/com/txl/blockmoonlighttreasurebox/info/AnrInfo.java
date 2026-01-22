@@ -5,8 +5,9 @@ import com.txl.blockmoonlighttreasurebox.cache.TimeLruCache;
 import java.io.Serializable;
 
 /**
- * 存储所有Anr发生时产生的信息
- * */
+ * ANR信息类
+ * 存储所有ANR发生时产生的信息，包括消息采样、调度采样、消息队列采样和主线程堆栈等
+ */
 public class AnrInfo implements Serializable {
     private static final long serialVersionUID = 1L;
     private static final long OFFSET_TIME = 60 * 1000; //1分钟

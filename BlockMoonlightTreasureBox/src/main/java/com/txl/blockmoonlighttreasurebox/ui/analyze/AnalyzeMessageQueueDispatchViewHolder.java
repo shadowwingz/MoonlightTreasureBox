@@ -9,6 +9,10 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.txl.blockmoonlighttreasurebox.R;
 import com.txl.blockmoonlighttreasurebox.info.MessageInfo;
 
+/**
+ * 消息队列分发ViewHolder
+ * 用于显示单条消息分发的详细信息
+ */
 public class AnalyzeMessageQueueDispatchViewHolder extends RecyclerView.ViewHolder {
     private TextView tvMsgType, tvMsgId,tvWallTime, tvCpuTime, tvMsgCount;
 
@@ -21,6 +25,10 @@ public class AnalyzeMessageQueueDispatchViewHolder extends RecyclerView.ViewHold
         tvMsgCount = itemView.findViewById(R.id.tvMsgCount);
     }
 
+    /**
+     * 解析并显示消息信息
+     * @param messageInfo 消息信息
+     */
     public void parse(MessageInfo messageInfo) {
         itemView.setBackgroundResource(getItemBg(messageInfo));
         tvMsgId.setText("msgId: ");
@@ -38,6 +46,11 @@ public class AnalyzeMessageQueueDispatchViewHolder extends RecyclerView.ViewHold
         tvMsgCount.setText("msgCount: "+messageInfo.count);
     }
 
+    /**
+     * 根据消息类型获取背景资源
+     * @param messageInfo 消息信息
+     * @return 背景资源ID
+     */
     private int getItemBg(MessageInfo messageInfo) {
         switch (messageInfo.msgType) {
             case MessageInfo.MSG_TYPE_GAP:

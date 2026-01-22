@@ -12,8 +12,9 @@ import com.txl.blockmoonlighttreasurebox.info.MessageInfo;
 import com.txl.blockmoonlighttreasurebox.ui.AnalyzeProtocol;
 
 /**
- * 分析每一个anr消息
- * */
+ * 分析每一个ANR消息的Activity
+ * 展示ANR的详细信息，包括调度信息、消息队列信息、堆栈信息等
+ */
 public class AnalyzeActivity extends Activity {
     private final AnalyzeSchedulingAdapter analyzeSchedulingAdapter = new AnalyzeSchedulingAdapter();
 
@@ -24,6 +25,10 @@ public class AnalyzeActivity extends Activity {
         initView();
     }
 
+    /**
+     * 初始化视图
+     * 设置各个RecyclerView和TextView，显示ANR的详细信息
+     */
     private void initView(){
         RecyclerView recyclerMainThreadScheduling = findViewById(R.id.recyclerMainThreadScheduling);
         recyclerMainThreadScheduling.setAdapter(analyzeSchedulingAdapter);

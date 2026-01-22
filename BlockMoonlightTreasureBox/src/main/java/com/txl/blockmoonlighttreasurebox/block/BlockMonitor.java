@@ -19,7 +19,9 @@ import com.txl.blockmoonlighttreasurebox.utils.ReflectUtils;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * 监控卡顿消息
+ * 监控卡顿消息的核心类
+ * 实现了Printer接口，通过Looper的消息分发机制来监控主线程的卡顿、ANR等问题
+ * 同时实现了ISystemAnrObserver接口，用于接收系统级别的ANR通知
  */
 class BlockMonitor implements Printer,IBlock, ISystemAnrObserver {
     private final String TAG = BlockMonitor.class.getSimpleName();
@@ -82,7 +84,8 @@ class BlockMonitor implements Printer,IBlock, ISystemAnrObserver {
 
     /**
      * 监控主线程调度能力
-     * */
+     * 通过定时检查主线程的调度情况来评估调度能力
+     */
     private void startCheckTime() {
         if(config == null){
             throw new RuntimeException("before start please set config");
@@ -91,12 +94,21 @@ class BlockMonitor implements Printer,IBlock, ISystemAnrObserver {
         mainHandler.post(checkThreadRunnable);
     }
 
+    /**
+     * 初始化监控器
+     * @param applicationContext 应用上下文
+     */
     public void init(Context applicationContext) {
         this.applicationContext = applicationContext;
         samplerManager = SamplerFactory.createSampleManager();
         updateConfig( new BlockBoxConfig.Builder().build() );
     }
 
+    /**
+     * 更新配置
+     * @param config 新的配置对象
+     * @return 当前BlockMonitor实例
+     */
     public IBlock updateConfig(BlockBoxConfig config) {
         this.config = config;
         if(applicationContext != null)
@@ -105,6 +117,9 @@ class BlockMonitor implements Printer,IBlock, ISystemAnrObserver {
         return this;
     }
 
+    /**
+     * 私有构造函数，使用单例模式
+     */
     private BlockMonitor() {
 
     }
@@ -112,6 +127,11 @@ class BlockMonitor implements Printer,IBlock, ISystemAnrObserver {
     //调用println 是奇数次还是偶数  默认false 偶数  true 奇数
     private final AtomicBoolean odd = new AtomicBoolean(false);
 
+    /**
+     * Printer接口的实现方法
+     * 通过判断奇偶来区分消息开始和结束
+     * @param x Looper打印的消息
+     */
     @Override
     public void println(String x) {
         if(x.contains("<<<<< Finished to") && !odd.get()){
@@ -127,6 +147,10 @@ class BlockMonitor implements Printer,IBlock, ISystemAnrObserver {
 
     }
 
+    /**
+     * 处理消息开始事件
+     * @param msg 消息内容
+     */
     private void msgStart(String msg) {
         tempStartTime = SystemClock.elapsedRealtime();
         monitorAnrTime = tempStartTime + config.getAnrTime();
@@ -154,6 +178,10 @@ class BlockMonitor implements Printer,IBlock, ISystemAnrObserver {
         }
     }
 
+    /**
+     * 处理消息结束事件
+     * @param msg 消息内容
+     */
     private void msgEnd(String msg) {
         synchronized (BlockMonitor.class){
             lastEnd = SystemClock.elapsedRealtime();
@@ -200,6 +228,10 @@ class BlockMonitor implements Printer,IBlock, ISystemAnrObserver {
         }
     }
 
+    /**
+     * 处理掉帧问题
+     * @param dealt 消息处理耗时
+     */
     private void handleJank(long dealt) {
 
         if (BoxMessageUtils.isBoxMessageDoFrame( currentMsg ) && dealt > mFrameIntervalNanos * config.getJankFrame()) {
@@ -215,11 +247,19 @@ class BlockMonitor implements Printer,IBlock, ISystemAnrObserver {
         }
     }
 
+    /**
+     * 获取应用上下文
+     * @return 应用上下文
+     */
     @Override
     public Context getApplicationContext() {
         return applicationContext;
     }
 
+    /**
+     * 开始监控
+     * @return 当前BlockMonitor实例
+     */
     public synchronized IBlock startMonitor() {
         if(start){
             Log.e( TAG,"already start" );
@@ -235,7 +275,8 @@ class BlockMonitor implements Printer,IBlock, ISystemAnrObserver {
 
     /**
      * 停止监控
-     * */
+     * @return 当前BlockMonitor实例
+     */
     public synchronized IBlock stopMonitor(){
         Looper.getMainLooper().setMessageLogging( null );
         mainHandler.removeCallbacksAndMessages( null );
@@ -245,6 +286,10 @@ class BlockMonitor implements Printer,IBlock, ISystemAnrObserver {
         return this;
     }
 
+    /**
+     * 处理消息
+     * 将消息信息发送给采样管理器进行处理
+     */
     private void handleMsg() {
         if (messageInfo != null) {
             MessageInfo temp = messageInfo;
@@ -259,10 +304,18 @@ class BlockMonitor implements Printer,IBlock, ISystemAnrObserver {
         messageInfo = null;
     }
 
+    /**
+     * 获取BlockMonitor单例实例
+     * @return BlockMonitor单例实例
+     */
     protected static BlockMonitor getInstance() {
         return BlockMonitorHolder.blockMonitor;
     }
 
+    /**
+     * 系统ANR发生时的回调
+     * 处理系统级别的ANR事件
+     */
     @Override
     public void onSystemAnr() {
         if(start){
@@ -289,17 +342,24 @@ class BlockMonitor implements Printer,IBlock, ISystemAnrObserver {
     }
 
     /**
-     * 监控anr
-     * 这个需要和checkTime配合着工装 否则极端情况  如果主线程 一直idle 会产生错误的监测结果
-     * */
+     * ANR监控线程
+     * 这个线程需要和checkTime配合工作，否则在极端情况下，如果主线程一直idle会产生错误的监测结果
+     */
     private class AnrMonitorThread extends Thread{
         private long msgId = noInit;
         private long anrTime;
 
+        /**
+         * 构造函数
+         * @param name 线程名称
+         */
         public AnrMonitorThread(String name) {
             super(name);
         }
 
+        /**
+         * 启动ANR监控线程
+         */
         @Override
         public synchronized void start() {
             super.start();
@@ -307,6 +367,10 @@ class BlockMonitor implements Printer,IBlock, ISystemAnrObserver {
             anrTime = SystemClock.elapsedRealtime() + config.getAnrTime();//重置anr 发生时间
         }
 
+        /**
+         * ANR监控线程的运行方法
+         * 持续监控主线程的消息处理时间，当超过ANR阈值时触发ANR采样
+         */
         @Override
         public void run() {
             super.run();

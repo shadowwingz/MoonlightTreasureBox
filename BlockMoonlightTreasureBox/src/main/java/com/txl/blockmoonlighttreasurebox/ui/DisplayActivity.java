@@ -24,10 +24,19 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+/**
+ * 展示ANR数据的Activity
+ * 显示所有缓存的ANR信息列表，支持下拉刷新
+ */
 public class DisplayActivity extends Activity {
     private final AtomicBoolean refresh = new AtomicBoolean(false);
     private final FileAdapter adapter = new FileAdapter();
     SwipeRefreshLayout swipeRefreshLayout;
+
+    /**
+     * Activity创建时的回调
+     * @param savedInstanceState 保存的实例状态
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -35,6 +44,9 @@ public class DisplayActivity extends Activity {
         initView();
     }
 
+    /**
+     * 初始化视图
+     */
     private void initView() {
         swipeRefreshLayout = findViewById(R.id.swipeRefresh);
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
@@ -48,6 +60,10 @@ public class DisplayActivity extends Activity {
         refreshAnrData();
     }
 
+    /**
+     * 刷新ANR数据
+     * 从文件缓存中恢复ANR信息并按时间排序显示
+     */
     private void refreshAnrData(){
         if(refresh.get()){
             return;
@@ -77,9 +93,17 @@ public class DisplayActivity extends Activity {
 
     }
 
+    /**
+     * 文件列表Adapter
+     * 用于显示ANR文件列表
+     */
     private static class FileAdapter extends RecyclerView.Adapter<FileViewHolder>{
         List<AnrInfo> anrInfoList ;
 
+        /**
+         * 设置ANR信息列表
+         * @param anrInfoList ANR信息列表
+         */
         public void setAnrInfoList(List<AnrInfo> anrInfoList) {
             this.anrInfoList = anrInfoList;
         }
@@ -110,6 +134,10 @@ public class DisplayActivity extends Activity {
         }
     }
 
+    /**
+     * 文件ViewHolder
+     * 用于显示单个ANR文件项
+     */
     private static class FileViewHolder extends RecyclerView.ViewHolder{
         private final TextView textView;
         public FileViewHolder(@NonNull View itemView) {

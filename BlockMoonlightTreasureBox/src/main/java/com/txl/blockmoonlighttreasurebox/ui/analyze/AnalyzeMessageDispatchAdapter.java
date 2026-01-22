@@ -12,10 +12,18 @@ import com.txl.blockmoonlighttreasurebox.info.MessageInfo;
 
 import java.util.List;
 
+/**
+ * 消息分发分析Adapter
+ * 用于显示ANR时的消息分发信息列表
+ */
 public class AnalyzeMessageDispatchAdapter extends RecyclerView.Adapter<AnalyzeMessageQueueDispatchViewHolder> {
     List<MessageInfo> messageInfos;
     private OnItemClickListener onItemClickListener;
 
+    /**
+     * 设置item点击监听器
+     * @param onItemClickListener 点击监听器
+     */
     public void setOnItemClickListener(OnItemClickListener onItemClickListener) {
         this.onItemClickListener = onItemClickListener;
     }
@@ -44,7 +52,15 @@ public class AnalyzeMessageDispatchAdapter extends RecyclerView.Adapter<AnalyzeM
     public int getItemCount() {
         return messageInfos == null ? 0 : messageInfos.size();
     }
+
+    /**
+     * item点击监听器接口
+     */
     public interface OnItemClickListener{
+        /**
+         * item点击回调
+         * @param messageInfo 点击的消息信息
+         */
         void onItemClick(MessageInfo messageInfo);
     }
 }

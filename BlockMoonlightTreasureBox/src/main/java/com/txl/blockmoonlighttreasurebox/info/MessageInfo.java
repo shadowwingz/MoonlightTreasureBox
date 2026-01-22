@@ -9,6 +9,10 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * 消息信息类
+ * 用于存储消息分发的相关信息，包括消息类型、耗时、CPU时间等
+ */
 public class MessageInfo implements Serializable {
     private static final long serialVersionUID = 1L;
 
@@ -35,23 +39,24 @@ public class MessageInfo implements Serializable {
     public @MsgType int msgType = MSG_TYPE_INFO;
 
     /**
-     * 至少有一条消息
-     * */
+     * 消息数量，至少有一条消息
+     */
     public int count = 0;
     /**
-     * 消息分发耗时
-     * */
+     * 消息分发耗时（wall时间）
+     */
     public long wallTime = 0;
     /**
-     * SystemClock.currentThreadTimeMillis()  是当前线程方法的执行时间，不包含线程休眠 或者锁竞争等待
-     * cpu 时间是函数正真执行时间
-     * */
+     * CPU时间
+     * SystemClock.currentThreadTimeMillis()是当前线程方法的执行时间，不包含线程休眠或锁竞争等待
+     * CPU时间是函数真正执行时间
+     */
     public long cpuTime = 0;
     public List<BoxMessage> boxMessages = new ArrayList<>();
 
     /**
      * 消息被创建的时间
-     * */
+     */
     public long messageCreateTime = SystemClock.elapsedRealtime();
 
     @Override
@@ -65,6 +70,11 @@ public class MessageInfo implements Serializable {
                 '}';
     }
 
+    /**
+     * 将消息类型转换为字符串
+     * @param msgType 消息类型
+     * @return 消息类型字符串
+     */
     public static String msgTypeToString(@MsgType int msgType){
         switch (msgType){
             case MSG_TYPE_NONE:

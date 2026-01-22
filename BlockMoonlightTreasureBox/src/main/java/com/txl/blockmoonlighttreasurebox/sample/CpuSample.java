@@ -15,7 +15,7 @@ import java.util.Map;
  * Copyright (c) 2021, 唐小陆 All rights reserved.
  * author：txl
  * date：2021/10/16
- * description：
+ * description：CPU采样器，用于采集CPU使用率信息
  */
 public class CpuSample extends AbsSampler{
     private static final int BUFFER_SIZE = 1024;
@@ -29,11 +29,17 @@ public class CpuSample extends AbsSampler{
     private long mAppCpuTimeLast = 0;
 
 
+    /**
+     * 构造函数
+     */
     public CpuSample() {
 //        BlockMonitorFace.getBlockMonitorFace().getApplicationContext().getSystemService("cpuinfo");
 //        ServiceManager serviceManager = new ServiceManager();
     }
 
+    /**
+     * 重置所有缓存值
+     */
     private void reset() {
         mUserLast = 0;
         mSystemLast = 0;
@@ -43,6 +49,11 @@ public class CpuSample extends AbsSampler{
         mAppCpuTimeLast = 0;
     }
 
+    /**
+     * 执行CPU采样
+     * @param msgId 消息ID
+     * @param needListener 是否需要通知监听器
+     */
     @Override
     protected void doSample(String msgId, boolean needListener) {
         reset();
@@ -88,6 +99,12 @@ public class CpuSample extends AbsSampler{
         }
     }
 
+    /**
+     * 解析CPU使用率数据
+     * @param cpuRate 系统CPU使用率数据
+     * @param pidCpuRate 进程CPU使用率数据
+     * @return 格式化后的CPU使用率字符串
+     */
     private String parse(String cpuRate, String pidCpuRate) {
         String[] cpuInfoArray = cpuRate.split(" ");
         if (cpuInfoArray.length < 9) {
